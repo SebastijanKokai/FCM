@@ -27,7 +27,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
-        Log.d("onMessageReceived", "onMessageReceived: ${remoteMessage.notification!!.body}")
+        remoteMessage.notification!!.body?.let {
+            Log.d("onMessageReceived", "onMessageReceived: ${it}")
+        }
 
         // it is a class to notify the user of events that happen.
         // This is how you tell the user that something has happened in the
@@ -45,12 +47,17 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // same method again will get back the same pending
         // intent for future reference
         // intent passed here is to our afterNotification class
-        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_MUTABLE)
+        } else {
+            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        }
 
 
         // checking if android version is greater than oreo(API 26) or not
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notificationChannel = NotificationChannel(channelId, description, NotificationManager.IMPORTANCE_HIGH)
+            notificationChannel =
+                NotificationChannel(channelId, description, NotificationManager.IMPORTANCE_HIGH)
             notificationChannel.enableLights(true)
             notificationChannel.lightColor = Color.GREEN
             notificationChannel.enableVibration(false)
@@ -60,7 +67,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 .setContentTitle(remoteMessage.notification!!.title)
                 .setContentText(remoteMessage.notification!!.body)
                 .setSmallIcon(R.drawable.ic_launcher_background)
-                .setLargeIcon(BitmapFactory.decodeResource(this.resources, R.drawable.ic_launcher_background))
+                .setLargeIcon(
+                    BitmapFactory.decodeResource(
+                        this.resources,
+                        R.drawable.ic_launcher_background
+                    )
+                )
                 .setContentIntent(pendingIntent)
         } else {
 
@@ -68,7 +80,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 .setContentTitle(remoteMessage.notification!!.title)
                 .setContentText(remoteMessage.notification!!.body)
                 .setSmallIcon(R.drawable.ic_launcher_background)
-                .setLargeIcon(BitmapFactory.decodeResource(this.resources, R.drawable.ic_launcher_background))
+                .setLargeIcon(
+                    BitmapFactory.decodeResource(
+                        this.resources,
+                        R.drawable.ic_launcher_background
+                    )
+                )
                 .setContentIntent(pendingIntent)
         }
         notificationManager.notify(1234, builder.build())

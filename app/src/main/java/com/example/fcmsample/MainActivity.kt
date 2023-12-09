@@ -16,8 +16,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import com.example.fcmsample.ui.theme.FcmsampleTheme
 import android.Manifest
+import android.util.Log
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
+
+    private val TAG = MainActivity::class.java.name
 
     // Declare the launcher at the top of your Activity/Fragment:
     private val requestPermissionLauncher = registerForActivityResult(
@@ -60,7 +65,26 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+
         askNotificationPermission()
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w(TAG, "Fetching FCM registration token failed", task.exception)
+                return@OnCompleteListener
+            }
+
+            val token = task.result
+
+            if (token == getSharedPreferences("LAST_TOKEN")) {
+                // Token not updated
+            } else {
+                // Token updated
+            }
+
+            Log.d("Token", token)
+
+            getSharedPreferences().edit().apply()
+        })
     }
 }
 
